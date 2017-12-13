@@ -43,7 +43,7 @@ public class Comunicacion {
         return instance;
     }
 
-    public void sendTweet(String msg) {
+    public boolean sendTweet(String msg) {
         try
         {
             mensajeActual = msg;
@@ -54,10 +54,12 @@ public class Comunicacion {
         {
             System.out.println("Error: "+ e.getMessage());
         }
+        return true;
     }
 
     public String readTweet(){
         try {
+            estadoActual = null;
             mBackgroundReadTweetLoaderTask = new ReadTweetLoaderTask();
             mBackgroundReadTweetLoaderTask.execute();
         } catch( Exception ex) {
@@ -65,7 +67,7 @@ public class Comunicacion {
         }
 
         while (estadoActual == null) {
-            System.out.println("Esperando");
+            //System.out.println("Esperando");
         }
 
         if (estadoActual.contains(MainActivity.MENSAJE_ACABADO))

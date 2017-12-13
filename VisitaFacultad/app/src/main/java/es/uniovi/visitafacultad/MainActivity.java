@@ -12,14 +12,12 @@ import com.google.vr.sdk.widgets.video.VrVideoEventListener;
 import com.google.vr.sdk.widgets.video.VrVideoView;
 
 import java.io.IOException;
-import java.util.HashMap;
 
 public class MainActivity extends AppCompatActivity {
     public static String MENSAJE_ACABADO = "MENSAJE_ACABADO";
-    private static int NUMERO_VIDEOS = 3;
-    private int videoActual = 1;
+    public boolean comenzado = false;
+    private Video videoActual;
 
-    public HashMap<Integer, String> videos = new HashMap<>();
     private VrVideoView mVrVideoView;
     private VideoLoaderTask mBackgroundVideoLoaderTask;
 
@@ -30,13 +28,14 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         this.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         buscarComponentes();
-        rellenarListaVideos();
+
+        videoActual = ArbolVideo.getInstance().getRaiz();
 
         mBackgroundVideoLoaderTask = new VideoLoaderTask();
         mBackgroundVideoLoaderTask.execute();
 
         //mVrVideoView.setDisplayMode(VrVideoView.DisplayMode.FULLSCREEN_STEREO);
-        mVrVideoView.playVideo();
+        mVrVideoView.pauseVideo();
     }
 
     private void buscarComponentes() {
@@ -45,16 +44,17 @@ public class MainActivity extends AppCompatActivity {
         mVrVideoView.setEventListener(new ActivityEventListener());
     }
 
-    private void rellenarListaVideos() {
-        for (int i = 1; i <= NUMERO_VIDEOS; i++) {
-            videos.put(i, "video"+i);
-        }
-    }
-
     private class ActivityEventListener extends VrVideoEventListener {
         @Override
         public void onLoadSuccess() {
+
             super.onLoadSuccess();
+
+            if (comenzado) {
+                mVrVideoView.playVideo();
+            } else {
+                comenzado = true;
+            }
         }
 
         @Override
@@ -64,7 +64,12 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onClick() {
-
+            try {
+                Thread.sleep(3000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            mVrVideoView.playVideo();
         }
 
         @Override
@@ -76,7 +81,7 @@ public class MainActivity extends AppCompatActivity {
         public void onCompletion() {
             super.onCompletion();
             Comunicacion.getInstance().sendTweet(MENSAJE_ACABADO);
-            Toast.makeText(getApplicationContext(), "Mensaje enviado", Toast.LENGTH_SHORT).show();
+            //dialogo();
 
             String eleccion = null;
 
@@ -92,19 +97,20 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(getApplicationContext(), eleccion, Toast.LENGTH_SHORT).show();
 
             if (eleccion.contains("IZQUIERDA"))
-                videoActual++;
+                videoActual = videoActual.getIzquierda();
             else if (eleccion.contains("DERECHA"))
-                videoActual += 2;
+                videoActual = videoActual.getDerecha();
 
             ejecutarVideo();
         }
     }
 
     private void ejecutarVideo() {
-        mVrVideoView.pauseVideo();
-        mVrVideoView.seekTo(0);
         mBackgroundVideoLoaderTask = new VideoLoaderTask();
         mBackgroundVideoLoaderTask.execute();
+        mVrVideoView.pauseVideo();
+        mVrVideoView.seekTo(0);
+        //mVrVideoView.playVideo();
     }
 
     class VideoLoaderTask extends AsyncTask<Void, Void, Boolean> {
@@ -115,7 +121,13 @@ public class MainActivity extends AppCompatActivity {
                 VrVideoView.Options options = new VrVideoView.Options();
                 options.inputType = VrVideoView.Options.TYPE_MONO;
 
-                mVrVideoView.loadVideoFromAsset(videos.get(videoActual)+".mp4", options);
+                mVrVideoView.loadVideoFromAsset(videoActual.getNombre()+".mp4", options);
+
+                /*if (videoActual.getId() != 1L) {
+                    mVrVideoView.pauseVideo();
+                    mVrVideoView.seekTo(0);
+                    mVrVideoView.playVideo();
+                }*/
             } catch( IOException e ) {
                 e.printStackTrace();
             }
@@ -124,25 +136,17 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void dialogoPrueba() {
+    public void dialogo() {
         AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-        builder.setMessage("¿A donde quieres ir ahora?")
+        builder.setMessage("¿A donde quieres ir ahora? Solo tienes que moverte")
                 .setPositiveButton("Derecha", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
-                        videoActual++;
-                        mVrVideoView.pauseVideo();
-                        mVrVideoView.seekTo(0);
-                        mBackgroundVideoLoaderTask = new VideoLoaderTask();
-                        mBackgroundVideoLoaderTask.execute();
+
                     }
                 })
                 .setNegativeButton("Izquierda", new DialogInterface.OnClickListener() {
                     public void onClick(DialogInterface dialog, int id) {
-                        videoActual+=2;
-                        mVrVideoView.pauseVideo();
-                        mVrVideoView.seekTo(0);
-                        mBackgroundVideoLoaderTask = new VideoLoaderTask();
-                        mBackgroundVideoLoaderTask.execute();
+
                     }
                 });
         builder.create().show();
