@@ -24,22 +24,39 @@ public class ArbolVideo {
     }
 
     private void crearArbolVideo() {
-        Video video1 = new Video(1L, "video1");
-        Video video2 = new Video(2L, "video2");
-        Video video3 = new Video(3L, "video3");
+        Video presentacion = new Video(1L, "presentacion");
+        Video hall = new Video(2L, "hall");
+        Video lobitos = new Video(3L, "lobitos");
+        Video macs = new Video(4L, "macs");
+        Video primeraPlanta = new Video(5L, "primeraPlanta");
+        Video segundaPlanta = new Video(6L, "segundaPlanta");
+        Video fin = new Video(7L, "fin");
 
-        video1.setDerecha(video2);
-        video1.setIzquierda(video3);
+        presentacion.setDerecha(lobitos);
+        presentacion.setIzquierda(hall);
 
-        video2.setIzquierda(video1);
-        video2.setDerecha(video3);
+        hall.setIzquierda(macs);
+        hall.setDerecha(primeraPlanta);
 
-        video3.setIzquierda(video1);
-        video3.setDerecha(video2);
+        macs.setIzquierda(presentacion);
+        macs.setDerecha(presentacion);
 
-        videos.put(video1.getId(), video1);
-        videos.put(video2.getId(), video2);
-        videos.put(video3.getId(), video3);
+        primeraPlanta.setIzquierda(segundaPlanta);
+        primeraPlanta.setDerecha(presentacion);
+
+        segundaPlanta.setIzquierda(fin);
+        segundaPlanta.setDerecha(presentacion);
+
+        fin.setIzquierda(presentacion);
+        fin.setDerecha(presentacion);
+
+        videos.put(presentacion.getId(), presentacion);
+        videos.put(hall.getId(), hall);
+        videos.put(lobitos.getId(), lobitos);
+        videos.put(macs.getId(), macs);
+        videos.put(primeraPlanta.getId(), primeraPlanta);
+        videos.put(segundaPlanta.getId(), segundaPlanta);
+        videos.put(fin.getId(), fin);
     }
 
 }
